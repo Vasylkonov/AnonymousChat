@@ -1,38 +1,36 @@
 const socket = io();
 
 
-
 let currentUser = null;
 
 
-
-// элементы
+// ======================
+// ЭЛЕМЕНТЫ
+// ======================
 
 const auth = document.getElementById("auth");
 const chat = document.getElementById("chat");
 
-
-const login = document.getElementById("login");
-const password = document.getElementById("password");
-const avatar = document.getElementById("avatar");
-
+const loginInput = document.getElementById("login");
+const passwordInput = document.getElementById("password");
+const avatarInput = document.getElementById("avatar");
 
 const info = document.getElementById("info");
 
-
 const messages = document.getElementById("messages");
-const users = document.getElementById("users");
+const usersBox = document.getElementById("users");
+
+const messageInput = document.getElementById("message");
 
 
-const message = document.getElementById("message");
-
-
+// профиль сверху
 
 const myAvatar = document.getElementById("myAvatar");
 const myName = document.getElementById("myName");
 const myDate = document.getElementById("myDate");
 
 
+// окно профиля
 
 const settings = document.getElementById("settings");
 
@@ -41,10 +39,9 @@ const settings = document.getElementById("settings");
 
 
 
-
-// ========================
+// ======================
 // РЕГИСТРАЦИЯ
-// ========================
+// ======================
 
 
 document
@@ -54,11 +51,14 @@ document
 
 socket.emit("register",{
 
-login:login.value.trim(),
+login:
+loginInput.value.trim(),
 
-password:password.value,
+password:
+passwordInput.value.trim(),
 
-avatar:avatar.value.trim()
+avatar:
+avatarInput.value.trim()
 
 });
 
@@ -69,29 +69,18 @@ avatar:avatar.value.trim()
 
 
 
+socket.on("register success",()=>{
 
-socket.on(
-"register success",
-()=>{
-
-
-info.innerHTML="✅ Аккаунт создан";
-
+info.innerHTML="✅ Регистрация успешна";
 
 });
 
 
 
 
+socket.on("register error",(msg)=>{
 
-
-socket.on(
-"register error",
-(text)=>{
-
-
-info.innerHTML="❌ "+text;
-
+info.innerHTML="❌ "+msg;
 
 });
 
@@ -102,10 +91,9 @@ info.innerHTML="❌ "+text;
 
 
 
-
-// ========================
+// ======================
 // ВХОД
-// ========================
+// ======================
 
 
 document
@@ -115,12 +103,11 @@ document
 
 socket.emit("login",{
 
+login:
+loginInput.value.trim(),
 
-login:login.value.trim(),
-
-
-password:password.value
-
+password:
+passwordInput.value.trim()
 
 });
 
@@ -133,10 +120,7 @@ password:password.value
 
 
 
-
-socket.on(
-"login success",
-(user)=>{
+socket.on("login success",(user)=>{
 
 
 currentUser=user;
@@ -144,13 +128,23 @@ currentUser=user;
 
 auth.style.display="none";
 
-
 chat.style.display="flex";
 
 
-updateProfile();
+refreshProfile();
 
 
+
+});
+
+
+
+
+
+
+socket.on("login error",(msg)=>{
+
+info.innerHTML="❌ "+msg;
 
 });
 
@@ -162,38 +156,25 @@ updateProfile();
 
 
 
-socket.on(
-"login error",
-(text)=>{
-
-
-info.innerHTML="❌ "+text;
-
-
-});
-
-
-
-
-
-
-
-
-
-// ========================
+// ======================
 // ПРОФИЛЬ
-// ========================
+// ======================
 
 
-
-function updateProfile(){
+function refreshProfile(){
 
 
 if(!currentUser)return;
 
 
 
-myAvatar.src=currentUser.avatar;
+let img =
+currentUser.avatar ||
+"https://api.dicebear.com/7.x/bottts/svg?seed="+currentUser.login;
+
+
+
+myAvatar.src=img;
 
 
 myName.innerHTML=currentUser.login;
@@ -208,7 +189,7 @@ myDate.innerHTML=
 
 document.getElementById(
 "profileAvatar"
-).src=currentUser.avatar;
+).src=img;
 
 
 
@@ -235,8 +216,6 @@ document.getElementById(
 
 
 
-
-
 // открыть профиль
 
 
@@ -248,16 +227,12 @@ document
 settings.style.display="flex";
 
 
-
-document.getElementById(
-"newLogin"
-).value=currentUser.login;
+document.getElementById("newLogin").value =
+currentUser.login;
 
 
-
-document.getElementById(
-"newAvatar"
-).value=currentUser.avatar;
+document.getElementById("newAvatar").value =
+currentUser.avatar || "";
 
 
 
@@ -271,7 +246,7 @@ document.getElementById(
 
 
 
-// закрыть
+// закрыть профиль
 
 
 document
@@ -306,11 +281,11 @@ socket.emit(
 
 
 login:
-document.getElementById("newLogin").value,
+document.getElementById("newLogin").value.trim(),
 
 
 avatar:
-document.getElementById("newAvatar").value
+document.getElementById("newAvatar").value.trim()
 
 
 });
@@ -332,10 +307,13 @@ socket.on(
 currentUser=user;
 
 
-updateProfile();
+refreshProfile();
 
 
 settings.style.display="none";
+
+
+alert("Профиль сохранён");
 
 
 });
@@ -348,12 +326,9 @@ settings.style.display="none";
 
 
 
-
-
-// ========================
+// ======================
 // ПАРОЛЬ
-// ========================
-
+// ======================
 
 
 document
@@ -361,14 +336,18 @@ document
 .onclick=()=>{
 
 
-let pass=
-document.getElementById(
-"newPassword"
-).value;
+let pass =
+document.getElementById("newPassword").value;
 
 
 
-if(pass.length<3)return;
+if(pass.length < 3){
+
+alert("Минимум 3 символа");
+
+return;
+
+}
 
 
 
@@ -376,7 +355,6 @@ socket.emit(
 "change password",
 pass
 );
-
 
 
 };
@@ -392,9 +370,7 @@ socket.on(
 ()=>{
 
 
-alert(
-"Пароль изменён"
-);
+alert("Пароль изменён");
 
 
 });
@@ -407,11 +383,9 @@ alert(
 
 
 
-
-
-// ========================
+// ======================
 // ВЫХОД
-// ========================
+// ======================
 
 
 document
@@ -435,23 +409,21 @@ location.reload();
 
 
 
-
-
-// ========================
+// ======================
 // ЧАТ
-// ========================
-
+// ======================
 
 
 document
 .getElementById("sendBtn")
-.onclick=sendMessage;
+.onclick =
+sendMessage;
 
 
 
 
 
-message.addEventListener(
+messageInput.addEventListener(
 "keydown",
 (e)=>{
 
@@ -475,7 +447,7 @@ function sendMessage(){
 
 
 let text =
-message.value.trim();
+messageInput.value.trim();
 
 
 
@@ -488,17 +460,20 @@ socket.emit(
 {
 
 
-nick:currentUser.login,
+nick:
+currentUser.login,
+
 
 text:text
 
 
 }
+
 );
 
 
 
-message.value="";
+messageInput.value="";
 
 
 }
@@ -514,26 +489,21 @@ message.value="";
 function addMessage(data){
 
 
-let div=document.createElement("div");
+let div =
+document.createElement("div");
 
 
 div.className="message";
 
 
-
 div.innerHTML=`
 
-<b>${data.nick}</b>
-
-:
-
+<b>${data.nick}</b>: 
 ${data.text}
 
 <br>
 
-<small>
-${data.time || ""}
-</small>
+<small>${data.time || ""}</small>
 
 `;
 
@@ -542,13 +512,11 @@ ${data.time || ""}
 messages.appendChild(div);
 
 
-
-messages.scrollTop=
+messages.scrollTop =
 messages.scrollHeight;
 
 
 }
-
 
 
 
@@ -565,8 +533,6 @@ addMessage(data);
 
 
 });
-
-
 
 
 
@@ -596,9 +562,9 @@ m=>addMessage(m)
 
 
 
-// ========================
+// ======================
 // ОНЛАЙН
-// ========================
+// ======================
 
 
 socket.on(
@@ -606,26 +572,26 @@ socket.on(
 (list)=>{
 
 
-users.innerHTML=
+usersBox.innerHTML =
 "<h3>🟢 Онлайн</h3>";
 
 
 
-list.forEach(
-u=>{
+list.forEach(user=>{
 
 
-users.innerHTML+=`
+usersBox.innerHTML += `
 
 <div class="user">
 
-<img src="${u.avatar}">
+<img src="${user.avatar}">
 
-${u.login}
+${user.login}
 
 </div>
 
 `;
+
 
 
 });
