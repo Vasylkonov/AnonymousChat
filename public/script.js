@@ -1,72 +1,45 @@
 const socket = io();
 
 
-let nick = "";
-
+let nickname="";
 
 
 const login = document.getElementById("login");
 const chat = document.getElementById("chat");
 
-const nickname = document.getElementById("nickname");
+const joinBtn = document.getElementById("joinBtn");
+const sendBtn = document.getElementById("sendBtn");
 
-const message = document.getElementById("message");
+
+const nickInput = document.getElementById("nickname");
+
+const messageInput = document.getElementById("message");
 
 const messages = document.getElementById("messages");
 
 
 
+joinBtn.onclick = ()=>{
 
 
-document.getElementById("joinBtn").onclick = function(){
+nickname = nickInput.value.trim();
 
 
-    nick = nickname.value.trim();
+if(nickname===""){
 
+nickname="Anonymous";
 
-    if(nick === ""){
-        nick = "Anonymous";
-    }
-
-
-    socket.emit("join", nick);
-
-
-    login.style.display = "none";
-
-    chat.style.display = "block";
-
-
-};
+}
 
 
 
+socket.emit("join",nickname);
 
 
 
-document.getElementById("sendBtn").onclick = function(){
+login.style.display="none";
 
-
-    let text = message.value.trim();
-
-
-    if(text === ""){
-        return;
-    }
-
-
-
-    socket.emit("chat message", {
-
-        nick:nick,
-
-        text:text
-
-    });
-
-
-
-    message.value="";
+chat.style.display="flex";
 
 
 };
@@ -75,72 +48,87 @@ document.getElementById("sendBtn").onclick = function(){
 
 
 
+function sendMessage(){
 
 
-message.addEventListener("keydown", function(e){
+let text = messageInput.value.trim();
 
 
-    if(e.key === "Enter"){
-
-        document.getElementById("sendBtn").click();
-
-    }
-
-
-});
+if(text==="") return;
 
 
 
+socket.emit("chat message",{
 
 
+nick:nickname,
 
-
-socket.on("chat message", function(data){
-
-
-    addMessage(data);
+text:text
 
 
 });
 
 
 
-
-
-
-socket.on("old messages", function(data){
-
-
-    data.forEach(addMessage);
-
-
-});
-
-
-
-
-
-
-
-function addMessage(data){
-
-
-    let div = document.createElement("div");
-
-
-    div.className="message";
-
-
-    div.innerHTML = 
-    "<b>"+data.nick+"</b>: "+data.text;
-
-
-
-    messages.appendChild(div);
-
-
-
-    messages.scrollTop = messages.scrollHeight;
+messageInput.value="";
 
 
 }
+
+
+
+sendBtn.onclick=sendMessage;
+
+
+
+messageInput.addEventListener("keydown",(e)=>{
+
+
+if(e.key==="Enter"){
+
+sendMessage();
+
+}
+
+
+});
+
+
+
+
+
+socket.on("chat message",(data)=>{
+
+
+let div=document.createElement("div");
+
+
+div.className="message";
+
+
+if(typeof data==="object"){
+
+
+div.innerHTML=
+"<b>"+data.nick+
+":</b> "+
+data.text;
+
+
+}else{
+
+
+div.textContent=data;
+
+
+}
+
+
+
+messages.appendChild(div);
+
+
+messages.scrollTop=messages.scrollHeight;
+
+
+});
