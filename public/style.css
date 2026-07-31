@@ -1,65 +1,228 @@
-body {
-    background: #0b0b14;
-    color: white;
-    font-family: Arial;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+*{
+box-sizing:border-box;
 }
 
 
-.chat {
-    width: 500px;
-    background: #161622;
-    padding: 20px;
-    border-radius: 15px;
+body{
+
+margin:0;
+
+background:#111;
+
+color:white;
+
+font-family:Arial;
+
 }
 
 
-h1 {
-    text-align: center;
-    color: #8b5cff;
+
+.app{
+
+width:100%;
+
+min-height:100vh;
+
+display:flex;
+
+justify-content:center;
+
+align-items:center;
+
 }
 
 
-#messages {
-    height: 400px;
-    overflow-y: auto;
-    background: #090912;
-    padding: 10px;
-    border-radius: 10px;
+
+.login{
+
+background:#222;
+
+padding:30px;
+
+border-radius:15px;
+
+text-align:center;
+
 }
 
 
-.message {
-    background: #26263b;
-    padding: 8px;
-    margin: 5px;
-    border-radius: 8px;
+
+input{
+
+padding:12px;
+
+border-radius:8px;
+
+border:none;
+
+margin:5px;
+
+font-size:16px;
+
 }
 
 
-.input {
-    display: flex;
-    margin-top: 10px;
+
+button{
+
+padding:12px 20px;
+
+border:none;
+
+border-radius:8px;
+
+cursor:pointer;
+
+background:#8b5cf6;
+
+color:white;
+
 }
 
 
-input {
-    flex: 1;
-    padding: 10px;
-    border-radius: 8px;
-    border: none;
+
+.chat{
+
+width:95%;
+
+max-width:1000px;
+
+height:90vh;
+
+background:#181818;
+
+border-radius:15px;
+
+padding:15px;
+
+flex-direction:column;
+
 }
 
 
-button {
-    margin-left: 10px;
-    background: #8b5cff;
-    color:white;
-    border:none;
-    padding:10px 15px;
-    border-radius:8px;
-    cursor:pointer;
+
+
+
+.main{
+
+display:flex;
+
+gap:15px;
+
+flex:1;
+
+}
+
+
+
+
+
+#messages{
+
+flex:1;
+
+background:#222;
+
+padding:15px;
+
+overflow:auto;
+
+border-radius:10px;
+
+}
+
+
+
+
+
+#online{
+
+width:250px;
+
+background:#222;
+
+border-radius:10px;
+
+padding:10px;
+
+}
+
+
+
+.user{
+
+display:flex;
+
+align-items:center;
+
+gap:10px;
+
+margin:10px 0;
+
+}
+
+
+
+.user img{
+
+width:40px;
+
+height:40px;
+
+border-radius:50%;
+
+}
+
+
+
+.send{
+
+display:flex;
+
+margin-top:10px;
+
+}
+
+
+
+.send input{
+
+flex:1;
+
+}
+
+
+
+
+
+@media(max-width:700px){
+
+
+.main{
+
+flex-direction:column;
+
+}
+
+
+
+#online{
+
+width:100%;
+
+}
+
+
+
+.chat{
+
+height:100vh;
+
+width:100%;
+
+border-radius:0;
+
+}
+
+
 }
