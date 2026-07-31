@@ -5,7 +5,10 @@
 
 <meta charset="UTF-8">
 
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Anonymous Chat</title>
+
 
 <script src="/socket.io/socket.io.js"></script>
 
@@ -17,10 +20,14 @@
 <body>
 
 
-<div class="container">
+<div class="app">
 
 
-<div id="auth">
+
+<!-- ВХОД -->
+
+<div id="auth" class="card">
+
 
 <h1>💬 Anonymous Chat</h1>
 
@@ -28,10 +35,21 @@
 <input id="login" placeholder="Логин">
 
 
-<input id="password" type="password" placeholder="Пароль">
+<input 
+id="password"
+type="password"
+placeholder="Пароль"
+>
 
 
-<br>
+<input 
+id="avatar"
+placeholder="Ссылка на аватар"
+>
+
+
+
+<div>
 
 
 <button id="registerBtn">
@@ -44,7 +62,11 @@
 </button>
 
 
+</div>
+
+
 <p id="info"></p>
+
 
 
 </div>
@@ -53,24 +75,45 @@
 
 
 
+
+
+<!-- ЧАТ -->
+
 <div id="chat" style="display:none;">
 
 
-<h1>💬 Чат</h1>
-
-
-<div id="users"></div>
-
-
-<div id="messages"></div>
 
 
 
-<input id="message" placeholder="Сообщение">
+<div class="top">
 
 
-<button id="sendBtn">
-Отправить
+<div id="profile">
+
+
+<img id="myAvatar">
+
+
+<div>
+
+<h3 id="myName">
+</h3>
+
+
+<span id="myDate">
+</span>
+
+
+</div>
+
+
+</div>
+
+
+
+
+<button id="editBtn">
+⚙️ Профиль
 </button>
 
 
@@ -79,7 +122,114 @@
 
 
 
+
+
+
+
+
+
+<div class="main">
+
+
+
+
+
+<div id="users">
+
+
 </div>
+
+
+
+
+
+
+<div class="chatBox">
+
+
+<div id="messages">
+
+</div>
+
+
+
+<div class="send">
+
+
+<input 
+id="message"
+placeholder="Написать сообщение..."
+>
+
+
+
+<button id="sendBtn">
+➤
+</button>
+
+
+</div>
+
+
+
+</div>
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<!-- НАСТРОЙКИ -->
+
+
+<div id="settings" style="display:none;" class="card">
+
+
+<h2>
+Настройки профиля
+</h2>
+
+
+
+<input id="newLogin" placeholder="Новый ник">
+
+
+<input id="newAvatar" placeholder="Новый аватар">
+
+
+<button id="saveProfile">
+Сохранить
+</button>
+
+
+<button id="closeSettings">
+Закрыть
+</button>
+
+
+
+</div>
+
+
+
+
+
+
+
+
+</div>
+
+
 
 
 
