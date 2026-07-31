@@ -1,40 +1,99 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
+
 <head>
-    <title>AnonymousChat</title>
-    <link rel="stylesheet" href="style.css">
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>AnonymousChat</title>
+
+<link rel="stylesheet" href="style.css">
+
 </head>
+
 
 <body>
 
-<div class="chat">
 
-    <h1>💬 AnonymousChat</h1>
+<div class="container">
 
-   <input id="nickname" placeholder="Твой ник">
 
-<select id="avatar">
-    <option value="😎">😎 Игрок</option>
-    <option value="👽">👽 Alien</option>
-    <option value="🔥">🔥 Fire</option>
-    <option value="🐺">🐺 Wolf</option>
-    <option value="⚡">⚡ Energy</option>
-</select>
+    <!-- Вход -->
 
-<button onclick="joinChat()">Войти</button>
+    <div id="login" class="login">
 
-    <ul id="messages"></ul>
 
-    <div class="send">
-        <input id="message" placeholder="Напиши сообщение...">
-        <button onclick="sendMessage()">➤</button>
+        <h1>💬 AnonymousChat</h1>
+
+
+        <input 
+        id="nickname" 
+        placeholder="Введите ник">
+
+
+        <button onclick="joinChat()">
+            Войти в чат
+        </button>
+
+
     </div>
+
+
+
+
+
+    <!-- Чат -->
+
+    <div id="chat" style="display:none;">
+
+
+
+        <h2>
+            🌐 Онлайн чат
+        </h2>
+
+
+
+        <div id="messages"></div>
+
+
+
+        <div class="send">
+
+
+            <input 
+            id="message"
+            placeholder="Введите сообщение"
+            onkeydown="
+            if(event.key==='Enter') sendMessage()
+            ">
+
+
+            <button onclick="sendMessage()">
+                Отправить
+            </button>
+
+
+        </div>
+
+
+
+    </div>
+
 
 </div>
 
 
+
+
+
 <script src="/socket.io/socket.io.js"></script>
+
 <script src="script.js"></script>
 
+
 </body>
+
 </html>
