@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Anonymous Chat</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="chat">
+
+    <h1>🕶 Anonymous Chat</h1>
+
+    <div id="messages"></div>
+
+    <div class="input">
+        <input id="message" placeholder="Напиши сообщение...">
+        <button onclick="sendMessage()">Отправить</button>
+    </div>
+
+</div>
+
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="script.js"></script>
+
+</body>
+</html>
