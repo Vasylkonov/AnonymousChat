@@ -1,15 +1,58 @@
 <!DOCTYPE html>
 <html lang="ru">
-
 <head>
-
 <meta charset="UTF-8">
+<title>Anonymous Chat</title>
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="/socket.io/socket.io.js"></script>
 
-<title>AnonymousChat</title>
+<style>
+body {
+    margin:0;
+    background:#111;
+    color:white;
+    font-family:Arial;
+}
 
-<link rel="stylesheet" href="style.css">
+.container {
+    width:400px;
+    margin:100px auto;
+    text-align:center;
+}
+
+input {
+    width:90%;
+    padding:12px;
+    margin:10px;
+    font-size:16px;
+}
+
+button {
+    padding:12px 30px;
+    background:#8a2be2;
+    color:white;
+    border:0;
+    cursor:pointer;
+    font-size:16px;
+}
+
+#chat {
+    display:none;
+}
+
+.messages {
+    height:300px;
+    overflow:auto;
+    background:#222;
+    padding:10px;
+    text-align:left;
+}
+
+.message {
+    margin:8px;
+}
+
+</style>
 
 </head>
 
@@ -20,80 +63,129 @@
 <div class="container">
 
 
-    <!-- Вход -->
+<div id="login">
 
-    <div id="login" class="login">
+<h1>Anonymous Chat</h1>
 
+<input id="nickname" placeholder="Введите ник">
 
-        <h1>💬 AnonymousChat</h1>
+<br>
 
+<button onclick="joinChat()">
+Войти в чат
+</button>
 
-        <input 
-        id="nickname" 
-        placeholder="Введите ник">
-
-
-        <button onclick="joinChat()">
-            Войти в чат
-        </button>
-
-
-    </div>
+</div>
 
 
 
+<div id="chat">
+
+<h2>Чат</h2>
 
 
-    <!-- Чат -->
-
-    <div id="chat" style="display:none;">
+<div class="messages" id="messages"></div>
 
 
-
-        <h2>
-            🌐 Онлайн чат
-        </h2>
+<input id="message" placeholder="Сообщение">
 
 
-
-        <div id="messages"></div>
-
-
-
-        <div class="send">
+<button onclick="sendMessage()">
+Отправить
+</button>
 
 
-            <input 
-            id="message"
-            placeholder="Введите сообщение"
-            onkeydown="
-            if(event.key==='Enter') sendMessage()
-            ">
-
-
-            <button onclick="sendMessage()">
-                Отправить
-            </button>
-
-
-        </div>
-
-
-
-    </div>
+</div>
 
 
 </div>
 
 
 
+<script>
 
 
-<script src="/socket.io/socket.io.js"></script>
+const socket = io();
 
-<script src="script.js"></script>
+
+
+let nickname = "";
+
+
+
+// вход в чат
+
+function joinChat(){
+
+    nickname = document.getElementById("nickname").value;
+
+
+    if(nickname.trim()==""){
+        nickname="Anonymous";
+    }
+
+
+    socket.emit("join", nickname);
+
+
+
+    document.getElementById("login").style.display="none";
+
+    document.getElementById("chat").style.display="block";
+
+}
+
+
+
+// отправка сообщения
+
+function sendMessage(){
+
+    let text = document.getElementById("message").value;
+
+
+    if(text.trim()=="") return;
+
+
+    socket.emit("chat message", {
+
+        nick:nickname,
+
+        text:text
+
+    });
+
+
+    document.getElementById("message").value="";
+
+}
+
+
+
+
+// получение сообщений
+
+socket.on("chat message",(data)=>{
+
+
+    let div=document.createElement("div");
+
+
+    div.className="message";
+
+
+    div.innerHTML="<b>"+data.nick+"</b>: "+data.text;
+
+
+    document.getElementById("messages").appendChild(div);
+
+
+});
+
+
+
+</script>
 
 
 </body>
-
 </html>
