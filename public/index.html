@@ -1,58 +1,13 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
+
 <head>
+
 <meta charset="UTF-8">
+
 <title>Anonymous Chat</title>
 
-<script src="/socket.io/socket.io.js"></script>
-
-<style>
-body {
-    margin:0;
-    background:#111;
-    color:white;
-    font-family:Arial;
-}
-
-.container {
-    width:400px;
-    margin:100px auto;
-    text-align:center;
-}
-
-input {
-    width:90%;
-    padding:12px;
-    margin:10px;
-    font-size:16px;
-}
-
-button {
-    padding:12px 30px;
-    background:#8a2be2;
-    color:white;
-    border:0;
-    cursor:pointer;
-    font-size:16px;
-}
-
-#chat {
-    display:none;
-}
-
-.messages {
-    height:300px;
-    overflow:auto;
-    background:#222;
-    padding:10px;
-    text-align:left;
-}
-
-.message {
-    margin:8px;
-}
-
-</style>
+<link rel="stylesheet" href="style.css">
 
 </head>
 
@@ -60,31 +15,33 @@ button {
 <body>
 
 
-<div class="container">
-
-
 <div id="login">
 
 <h1>Anonymous Chat</h1>
 
+
 <input id="nickname" placeholder="Введите ник">
 
-<br>
 
 <button onclick="joinChat()">
 Войти в чат
 </button>
 
+
 </div>
 
 
 
-<div id="chat">
-
-<h2>Чат</h2>
+<div id="chat" style="display:none">
 
 
-<div class="messages" id="messages"></div>
+<h2>
+Anonymous Chat
+</h2>
+
+
+<div id="messages"></div>
+
 
 
 <input id="message" placeholder="Сообщение">
@@ -98,8 +55,8 @@ button {
 </div>
 
 
-</div>
 
+<script src="/socket.io/socket.io.js"></script>
 
 
 <script>
@@ -108,79 +65,89 @@ button {
 const socket = io();
 
 
-
-let nickname = "";
-
+let nickname="";
 
 
-// вход в чат
 
 function joinChat(){
 
-    nickname = document.getElementById("nickname").value;
+
+nickname=document.getElementById("nickname").value;
 
 
-    if(nickname.trim()==""){
-        nickname="Anonymous";
-    }
+if(nickname.trim()==""){
 
-
-    socket.emit("join", nickname);
-
-
-
-    document.getElementById("login").style.display="none";
-
-    document.getElementById("chat").style.display="block";
+nickname="Anonymous";
 
 }
 
 
 
-// отправка сообщения
-
-function sendMessage(){
-
-    let text = document.getElementById("message").value;
+socket.emit("join",nickname);
 
 
-    if(text.trim()=="") return;
+
+document.getElementById("login").style.display="none";
 
 
-    socket.emit("chat message", {
-
-        nick:nickname,
-
-        text:text
-
-    });
+document.getElementById("chat").style.display="block";
 
 
-    document.getElementById("message").value="";
 
 }
 
 
 
-
-// получение сообщений
-
-socket.on("chat message",(data)=>{
+socket.on("old messages",(msgs)=>{
 
 
-    let div=document.createElement("div");
-
-
-    div.className="message";
-
-
-    div.innerHTML="<b>"+data.nick+"</b>: "+data.text;
-
-
-    document.getElementById("messages").appendChild(div);
+msgs.forEach(addMessage);
 
 
 });
+
+
+
+
+socket.on("chat message",(msg)=>{
+
+
+addMessage(msg);
+
+
+});
+
+
+
+
+function addMessage(msg){
+
+    let div = document.createElement("div");
+
+    if(typeof msg === "string"){
+
+        div.innerHTML = msg;
+
+    } else {
+
+        div.innerHTML =
+        "<b>" + msg.nick + "</b>: " + msg.text;
+
+    }
+
+
+    document.getElementById("messages")
+    .appendChild(div);
+
+
+    let box = document.getElementById("messages");
+
+    box.scrollTop = box.scrollHeight;
+
+}
+
+
+
 
 
 
@@ -188,4 +155,5 @@ socket.on("chat message",(data)=>{
 
 
 </body>
+
 </html>
