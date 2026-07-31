@@ -1,6 +1,7 @@
 const socket = io();
 
 
+
 let currentUser = null;
 
 
@@ -11,19 +12,19 @@ const auth = document.getElementById("auth");
 const chat = document.getElementById("chat");
 
 
-const loginInput = document.getElementById("login");
-const passwordInput = document.getElementById("password");
-const avatarInput = document.getElementById("avatar");
+const login = document.getElementById("login");
+const password = document.getElementById("password");
+const avatar = document.getElementById("avatar");
 
 
 const info = document.getElementById("info");
 
 
-const messagesBox = document.getElementById("messages");
-const usersBox = document.getElementById("users");
+const messages = document.getElementById("messages");
+const users = document.getElementById("users");
 
 
-const messageInput = document.getElementById("message");
+const message = document.getElementById("message");
 
 
 
@@ -37,36 +38,27 @@ const settings = document.getElementById("settings");
 
 
 
-console.log("script.js загружен");
 
 
 
 
-
-
-// =====================
+// ========================
 // РЕГИСТРАЦИЯ
-// =====================
+// ========================
 
 
-const registerBtn =
-document.getElementById("registerBtn");
-
-
-if(registerBtn){
-
-registerBtn.onclick = ()=>{
+document
+.getElementById("registerBtn")
+.onclick = ()=>{
 
 
 socket.emit("register",{
 
+login:login.value.trim(),
 
-login:loginInput.value.trim(),
+password:password.value,
 
-password:passwordInput.value,
-
-avatar:avatarInput.value.trim()
-
+avatar:avatar.value.trim()
 
 });
 
@@ -74,25 +66,28 @@ avatar:avatarInput.value.trim()
 };
 
 
-}
 
 
 
 
+socket.on(
+"register success",
+()=>{
 
 
-
-socket.on("register success",()=>{
-
-
-info.innerHTML="✅ Регистрация успешна";
+info.innerHTML="✅ Аккаунт создан";
 
 
 });
 
 
 
-socket.on("register error",(text)=>{
+
+
+
+socket.on(
+"register error",
+(text)=>{
 
 
 info.innerHTML="❌ "+text;
@@ -108,29 +103,23 @@ info.innerHTML="❌ "+text;
 
 
 
-// =====================
+// ========================
 // ВХОД
-// =====================
+// ========================
 
 
-
-const loginBtn =
-document.getElementById("loginBtn");
-
-
-
-if(loginBtn){
-
-
-loginBtn.onclick=()=>{
+document
+.getElementById("loginBtn")
+.onclick = ()=>{
 
 
 socket.emit("login",{
 
 
-login:loginInput.value.trim(),
+login:login.value.trim(),
 
-password:passwordInput.value
+
+password:password.value
 
 
 });
@@ -139,20 +128,18 @@ password:passwordInput.value
 };
 
 
-}
 
 
 
 
 
 
-
-
-socket.on("login success",(user)=>{
+socket.on(
+"login success",
+(user)=>{
 
 
 currentUser=user;
-
 
 
 auth.style.display="none";
@@ -161,8 +148,7 @@ auth.style.display="none";
 chat.style.display="flex";
 
 
-
-showProfile();
+updateProfile();
 
 
 
@@ -174,7 +160,11 @@ showProfile();
 
 
 
-socket.on("login error",(text)=>{
+
+
+socket.on(
+"login error",
+(text)=>{
 
 
 info.innerHTML="❌ "+text;
@@ -190,12 +180,13 @@ info.innerHTML="❌ "+text;
 
 
 
-// =====================
+// ========================
 // ПРОФИЛЬ
-// =====================
+// ========================
 
 
-function showProfile(){
+
+function updateProfile(){
 
 
 if(!currentUser)return;
@@ -213,6 +204,27 @@ myDate.innerHTML=
 
 
 
+
+
+document.getElementById(
+"profileAvatar"
+).src=currentUser.avatar;
+
+
+
+document.getElementById(
+"profileName"
+).innerHTML=currentUser.login;
+
+
+
+document.getElementById(
+"profileDate"
+).innerHTML=
+"📅 "+currentUser.created;
+
+
+
 }
 
 
@@ -223,41 +235,35 @@ myDate.innerHTML=
 
 
 
-// кнопка профиль
 
 
-const editBtn =
-document.getElementById("editBtn");
+// открыть профиль
 
 
-
-if(editBtn){
-
-
-editBtn.onclick=()=>{
+document
+.getElementById("editBtn")
+.onclick=()=>{
 
 
-console.log("Профиль открыт");
-
-
-settings.style.display="block";
+settings.style.display="flex";
 
 
 
-document.getElementById("newLogin").value =
-currentUser.login;
+document.getElementById(
+"newLogin"
+).value=currentUser.login;
 
 
 
-document.getElementById("newAvatar").value =
-currentUser.avatar;
+document.getElementById(
+"newAvatar"
+).value=currentUser.avatar;
 
 
 
 };
 
 
-}
 
 
 
@@ -265,32 +271,18 @@ currentUser.avatar;
 
 
 
+// закрыть
 
 
-
-
-// закрыть профиль
-
-
-const closeSettings =
-document.getElementById("closeSettings");
-
-
-
-if(closeSettings){
-
-
-closeSettings.onclick=()=>{
+document
+.getElementById("closeSettings")
+.onclick=()=>{
 
 
 settings.style.display="none";
 
 
 };
-
-
-}
-
 
 
 
@@ -303,15 +295,9 @@ settings.style.display="none";
 // сохранить профиль
 
 
-const saveProfile =
-document.getElementById("saveProfile");
-
-
-
-if(saveProfile){
-
-
-saveProfile.onclick=()=>{
+document
+.getElementById("saveProfile")
+.onclick=()=>{
 
 
 socket.emit(
@@ -333,21 +319,20 @@ document.getElementById("newAvatar").value
 };
 
 
-}
 
 
 
 
 
-
-
-socket.on("profile updated",(user)=>{
+socket.on(
+"profile updated",
+(user)=>{
 
 
 currentUser=user;
 
 
-showProfile();
+updateProfile();
 
 
 settings.style.display="none";
@@ -363,23 +348,124 @@ settings.style.display="none";
 
 
 
-// =====================
-// СООБЩЕНИЯ
-// =====================
 
 
-const sendBtn =
-document.getElementById("sendBtn");
+// ========================
+// ПАРОЛЬ
+// ========================
 
 
 
-if(sendBtn){
+document
+.getElementById("changePassword")
+.onclick=()=>{
 
 
-sendBtn.onclick=sendMessage;
+let pass=
+document.getElementById(
+"newPassword"
+).value;
 
+
+
+if(pass.length<3)return;
+
+
+
+socket.emit(
+"change password",
+pass
+);
+
+
+
+};
+
+
+
+
+
+
+
+socket.on(
+"password changed",
+()=>{
+
+
+alert(
+"Пароль изменён"
+);
+
+
+});
+
+
+
+
+
+
+
+
+
+
+
+// ========================
+// ВЫХОД
+// ========================
+
+
+document
+.getElementById("logout")
+.onclick=()=>{
+
+
+socket.emit("logout");
+
+
+location.reload();
+
+
+};
+
+
+
+
+
+
+
+
+
+
+
+// ========================
+// ЧАТ
+// ========================
+
+
+
+document
+.getElementById("sendBtn")
+.onclick=sendMessage;
+
+
+
+
+
+message.addEventListener(
+"keydown",
+(e)=>{
+
+
+if(e.key==="Enter"){
+
+sendMessage();
 
 }
+
+
+});
+
+
 
 
 
@@ -389,7 +475,7 @@ function sendMessage(){
 
 
 let text =
-messageInput.value.trim();
+message.value.trim();
 
 
 
@@ -412,33 +498,10 @@ text:text
 
 
 
-messageInput.value="";
+message.value="";
 
 
 }
-
-
-
-
-
-
-
-
-messageInput.addEventListener(
-"keydown",
-(e)=>{
-
-
-if(e.key==="Enter"){
-
-
-sendMessage();
-
-
-}
-
-
-});
 
 
 
@@ -451,7 +514,6 @@ sendMessage();
 function addMessage(data){
 
 
-
 let div=document.createElement("div");
 
 
@@ -461,7 +523,10 @@ div.className="message";
 
 div.innerHTML=`
 
-<b>${data.nick}</b>: 
+<b>${data.nick}</b>
+
+:
+
 ${data.text}
 
 <br>
@@ -474,13 +539,12 @@ ${data.time || ""}
 
 
 
-messagesBox.appendChild(div);
+messages.appendChild(div);
 
 
 
-messagesBox.scrollTop =
-messagesBox.scrollHeight;
-
+messages.scrollTop=
+messages.scrollHeight;
 
 
 }
@@ -492,7 +556,9 @@ messagesBox.scrollHeight;
 
 
 
-socket.on("chat message",(data)=>{
+socket.on(
+"chat message",
+(data)=>{
 
 
 addMessage(data);
@@ -506,10 +572,13 @@ addMessage(data);
 
 
 
-socket.on("old messages",(list)=>{
+
+socket.on(
+"old messages",
+(list)=>{
 
 
-messagesBox.innerHTML="";
+messages.innerHTML="";
 
 
 list.forEach(
@@ -527,33 +596,32 @@ m=>addMessage(m)
 
 
 
-// =====================
+// ========================
 // ОНЛАЙН
-// =====================
+// ========================
 
 
-socket.on("users online",(list)=>{
+socket.on(
+"users online",
+(list)=>{
 
 
-if(!usersBox)return;
-
-
-
-usersBox.innerHTML=
+users.innerHTML=
 "<h3>🟢 Онлайн</h3>";
 
 
 
-list.forEach(user=>{
+list.forEach(
+u=>{
 
 
-usersBox.innerHTML += `
+users.innerHTML+=`
 
 <div class="user">
 
-<img src="${user.avatar}">
+<img src="${u.avatar}">
 
-<span>${user.login}</span>
+${u.login}
 
 </div>
 
