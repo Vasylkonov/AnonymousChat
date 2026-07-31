@@ -1,68 +1,57 @@
 const express = require("express");
-const app = express();
-
 const http = require("http");
-const server = http.createServer(app);
-
 const { Server } = require("socket.io");
-const io = new Server(server);
-
 const fs = require("fs");
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
 
 app.use(express.static("public"));
 
-
-// пользователи
 let users = {};
+let messages = [];
 
-
-// файл сообщений
-const messagesFile = "messages.json";
-
-
-// если файла нет - создаём
-if(!fs.existsSync(messagesFile)){
-    fs.writeFileSync(messagesFile, JSON.stringify([]));
-}
+const file = "messages.json";
 
 
 // загрузка сообщений
 function loadMessages(){
 
-    try{
+    if(fs.existsSync(file)){
 
-        let data = fs.readFileSync(messagesFile, "utf8");
+        try{
 
+            let data = fs.readFileSync(file,"utf8");
 
-        if(!data.trim()){
+            if(data.trim()){
+                messages = JSON.parse(data);
+            }
 
-            return [];
+        }catch(e){
+
+            console.log("Ошибка загрузки сообщений");
+            messages = [];
 
         }
-
-
-        return JSON.parse(data);
-
-
-    }catch(error){
-
-
-        console.log("Ошибка чтения истории, создаём новую");
-
-
-        fs.writeFileSync(
-            messagesFile,
-            "[]"
-        );
-
-
-        return [];
 
     }
 
 }
 
 
+// сохранение сообщений
+function saveMessages(){
+
+    fs.writeFileSync(
+        file,
+        JSON.stringify(messages,null,2)
+    );
+
+}
+
+
+loadMessages();
 
 
 
@@ -72,144 +61,62 @@ io.on("connection",(socket)=>{
     console.log("Пользователь подключился");
 
 
-
-    // отправляем историю новым игрокам
-    socket.emit(
-        "history",
-        loadMessages()
-    );
-
-
-
     // вход
-    socket.on("join",(userData)=>{
+    socket.on("join",(nickname)=>{
 
 
-        users[socket.id]={
-
-            nick:userData.nick || "Anonymous",
-
-            avatar:userData.avatar || "👤"
-
-        };
+        users[socket.id] = nickname || "Anonymous";
 
 
-        io.emit("users",users);
+        socket.emit("old messages",messages);
 
 
+        io.emit("users",Object.values(users));
 
-        let message={
+
+        io.emit("chat message",{
 
             nick:"SERVER",
-            avatar:"⚙️",
-            text:
-            users[socket.id].nick+
-            " вошёл в чат"
+            text: users[socket.id]+" вошёл в чат"
 
-        };
-
-
-        saveMessage(message);
-
-
-        io.emit(
-            "chat message",
-            message
-        );
+        });
 
 
     });
-
 
 
 
     // сообщение
-    socket.on("chat message",(text)=>{
+    socket.on("chat message",(msg)=>{
 
 
-        let user=users[socket.id];
+        let message={
+
+            nick: users[socket.id] || "Anonymous",
+            text: msg,
+            time:new Date().toLocaleTimeString()
+
+        };
 
 
-        if(user){
+        messages.push(message);
 
 
-            let message={
+        // максимум 100 сообщений
+        if(messages.length>100){
 
-                nick:user.nick,
-
-                avatar:user.avatar,
-
-                text:text,
-
-                time:new Date().toLocaleTimeString()
-
-            };
-
-
-            saveMessage(message);
-
-
-            io.emit(
-                "chat message",
-                message
-            );
+            messages.shift();
 
         }
 
 
-    });
-socket.on("history",(messages)=>{
+        saveMessages();
 
-    messages.forEach((msg)=>{
 
-        addMessage(msg);
+        io.emit("chat message",message);
 
-    });
-
-});
-socket.on("history", (messages)=>{
-
-    messages.forEach((msg)=>{
-
-        showMessage(msg);
 
     });
-
-});
-
-
-socket.on("chat message",(msg)=>{
-
-    showMessage(msg);
-
-});
-
-
-
-function showMessage(msg){
-
-    let chat = document.getElementById("messages");
-
-
-    let div = document.createElement("div");
-
-
-    div.className = "message";
-
-
-    div.innerHTML = `
-        <b>${msg.avatar || "👤"} ${msg.nick}</b>: 
-        ${msg.text}
-    `;
-
-
-    chat.appendChild(div);
-
-
-    chat.scrollTop = chat.scrollHeight;
-
-}
-
 
 
 
@@ -217,38 +124,23 @@ function showMessage(msg){
     socket.on("disconnect",()=>{
 
 
-        let user=users[socket.id];
+        let name=users[socket.id];
 
 
         delete users[socket.id];
 
 
-        io.emit("users",users);
+        io.emit("users",Object.values(users));
 
 
+        if(name){
 
-        if(user){
-
-
-            let message={
+            io.emit("chat message",{
 
                 nick:"SERVER",
+                text:name+" вышел из чата"
 
-                avatar:"⚙️",
-
-                text:user.nick+
-                " вышел из чата"
-
-            };
-
-
-            saveMessage(message);
-
-
-            io.emit(
-                "chat message",
-                message
-            );
+            });
 
         }
 
@@ -263,15 +155,11 @@ function showMessage(msg){
 
 
 
-
-
 const PORT=process.env.PORT || 3000;
 
 
 server.listen(PORT,()=>{
 
-    console.log(
-        "Сервер запущен: "+PORT
-    );
+console.log("Сервер запущен:",PORT);
 
 });
