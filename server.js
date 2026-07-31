@@ -12,80 +12,69 @@ app.use(express.static("public"));
 
 
 
-let users = {};
-let avatars = {};
-
-const file = "messages.json";
+const messagesFile="messages.json";
+const usersFile="users.json";
 
 
-
-function loadMessages(){
-
-    try{
-
-        if(!fs.existsSync(file)){
-            fs.writeFileSync(file,"[]");
-        }
-
-        let data = fs.readFileSync(file,"utf8");
-
-        if(!data.trim()){
-            return [];
-        }
-
-        return JSON.parse(data);
+let messages=[];
+let accounts=[];
 
 
-    }catch(e){
+let online={};
 
-        console.log("Ошибка файла сообщений");
-        return [];
 
-    }
 
+
+
+function load(file){
+
+try{
+
+if(!fs.existsSync(file)){
+fs.writeFileSync(file,"[]");
 }
 
 
-
-let messages = loadMessages();
-
+let data=fs.readFileSync(file,"utf8");
 
 
+if(!data.trim()){
+return [];
+}
 
 
-function saveMessages(){
+return JSON.parse(data);
 
-    fs.writeFileSync(
-        file,
-        JSON.stringify(messages,null,2)
-    );
+
+}catch(e){
+
+return [];
+
+}
 
 }
 
 
 
 
+function save(file,data){
 
-function getUsers(){
-
-    let list=[];
-
-
-    for(let id in users){
-
-        list.push({
-
-            nick: users[id],
-            avatar: avatars[id]
-
-        });
-
-    }
-
-
-    return list;
+fs.writeFileSync(
+file,
+JSON.stringify(data,null,2)
+);
 
 }
+
+
+
+
+
+messages=load(messagesFile);
+
+accounts=load(usersFile);
+
+
 
 
 
@@ -98,7 +87,116 @@ console.log("Пользователь подключился");
 
 
 
-// отправляем историю
+
+
+// регистрация
+
+
+socket.on("register",(data)=>{
+
+
+let check=accounts.find(
+u=>u.login===data.login
+);
+
+
+
+if(check){
+
+socket.emit(
+"register error",
+"Такой логин уже существует"
+);
+
+
+return;
+
+}
+
+
+
+accounts.push({
+
+login:data.login,
+
+password:data.password
+
+});
+
+
+
+save(
+usersFile,
+accounts
+);
+
+
+
+socket.emit(
+"register success"
+);
+
+
+
+});
+
+
+
+
+
+
+
+
+// вход
+
+
+socket.on("login",(data)=>{
+
+
+let user=accounts.find(
+u=>
+u.login===data.login &&
+u.password===data.password
+);
+
+
+
+if(!user){
+
+
+socket.emit(
+"login error",
+"Неверный логин или пароль"
+);
+
+
+return;
+
+}
+
+
+
+online[socket.id]={
+
+
+nick:user.login,
+
+
+avatar:
+"https://api.dicebear.com/7.x/bottts/svg?seed="+user.login
+
+
+};
+
+
+
+
+socket.emit(
+"login success",
+user.login
+);
+
+
 
 socket.emit(
 "old messages",
@@ -107,51 +205,13 @@ messages
 
 
 
-
-
-// вход пользователя
-
-socket.on("join",(nickname)=>{
-
-
-if(!nickname || nickname.trim()==""){
-
-nickname="Anonymous";
-
-}
-
-
-
-users[socket.id]=nickname;
-
-
-
-avatars[socket.id] =
-"https://api.dicebear.com/7.x/bottts/svg?seed="+nickname;
-
-
-
-
-
 io.emit(
 "users online",
-getUsers()
+Object.values(online)
 );
 
 
 
-
-
-io.emit("chat message",{
-
-nick:"SERVER",
-
-text:nickname+" вошёл в чат"
-
-});
-
-
-
 });
 
 
@@ -160,17 +220,16 @@ text:nickname+" вошёл в чат"
 
 
 
-// сообщение
+
+
+
+// сообщения
+
 
 socket.on("chat message",(data)=>{
 
 
-if(!data.text) return;
-
-
-
 messages.push(data);
-
 
 
 if(messages.length>100){
@@ -180,8 +239,10 @@ messages.shift();
 }
 
 
-
-saveMessages();
+save(
+messagesFile,
+messages
+);
 
 
 
@@ -191,8 +252,8 @@ data
 );
 
 
-
 });
+
 
 
 
@@ -202,47 +263,26 @@ data
 
 // выход
 
+
 socket.on("disconnect",()=>{
 
 
-let name = users[socket.id];
-
-
-
-delete users[socket.id];
-
-delete avatars[socket.id];
+delete online[socket.id];
 
 
 
 io.emit(
 "users online",
-getUsers()
+Object.values(online)
 );
 
 
 
-
-if(name){
-
-
-io.emit("chat message",{
-
-nick:"SERVER",
-
-text:name+" вышел из чата"
-
-});
-
-
-}
-
-
-
-console.log("Пользователь отключился");
+console.log("Пользователь вышел");
 
 
 });
+
 
 
 
@@ -254,13 +294,16 @@ console.log("Пользователь отключился");
 
 
 
-const PORT = process.env.PORT || 3000;
+
+const PORT=process.env.PORT || 3000;
 
 
 server.listen(PORT,()=>{
 
+
 console.log(
 "Сервер запущен: "+PORT
 );
+
 
 });
