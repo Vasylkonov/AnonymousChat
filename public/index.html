@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Anonymous Chat</title>
+    <title>AnonymousChat</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -9,13 +9,25 @@
 
 <div class="chat">
 
-    <h1>🕶 Anonymous Chat</h1>
+    <h1>💬 AnonymousChat</h1>
 
-    <div id="messages"></div>
+   <input id="nickname" placeholder="Твой ник">
 
-    <div class="input">
+<select id="avatar">
+    <option value="😎">😎 Игрок</option>
+    <option value="👽">👽 Alien</option>
+    <option value="🔥">🔥 Fire</option>
+    <option value="🐺">🐺 Wolf</option>
+    <option value="⚡">⚡ Energy</option>
+</select>
+
+<button onclick="joinChat()">Войти</button>
+
+    <ul id="messages"></ul>
+
+    <div class="send">
         <input id="message" placeholder="Напиши сообщение...">
-        <button onclick="sendMessage()">Отправить</button>
+        <button onclick="sendMessage()">➤</button>
     </div>
 
 </div>
