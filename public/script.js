@@ -1,38 +1,117 @@
-const socket = io();
-
-let nickname = "";
-
-
-const login = document.getElementById("login");
-const chat = document.getElementById("chat");
-
-const joinBtn = document.getElementById("joinBtn");
-const sendBtn = document.getElementById("sendBtn");
-
-const nicknameInput = document.getElementById("nickname");
-const messageInput = document.getElementById("message");
-
-const messages = document.getElementById("messages");
+const socket=io();
 
 
 
-// вход в чат
-
-joinBtn.addEventListener("click", ()=>{
+let nickname="";
 
 
-nickname = nicknameInput.value.trim();
+
+const auth=document.getElementById("auth");
+
+const chat=document.getElementById("chat");
 
 
-if(nickname === ""){
-    nickname = "Anonymous";
+const login=document.getElementById("login");
+
+const password=document.getElementById("password");
+
+
+const info=document.getElementById("info");
+
+
+
+const messages=document.getElementById("messages");
+
+const users=document.getElementById("users");
+
+
+const message=document.getElementById("message");
+
+
+
+
+
+document.getElementById("register").onclick=()=>{
+
+
+socket.emit(
+"register",
+{
+
+login:login.value,
+
+password:password.value
+
 }
 
+);
 
-socket.emit("join", nickname);
+
+};
 
 
-login.style.display="none";
+
+
+
+
+socket.on(
+"register success",
+()=>{
+
+info.innerHTML="Регистрация успешна";
+
+});
+
+
+
+socket.on(
+"register error",
+(msg)=>{
+
+info.innerHTML=msg;
+
+});
+
+
+
+
+
+
+
+
+document.getElementById("enter").onclick=()=>{
+
+
+socket.emit(
+"login",
+{
+
+login:login.value,
+
+password:password.value
+
+}
+
+);
+
+
+};
+
+
+
+
+
+
+socket.on(
+"login success",
+(name)=>{
+
+
+nickname=name;
+
+
+auth.style.display="none";
+
 chat.style.display="block";
 
 
@@ -41,32 +120,48 @@ chat.style.display="block";
 
 
 
+socket.on(
+"login error",
+(msg)=>{
 
-// отправка сообщения
+info.innerHTML=msg;
 
-sendBtn.addEventListener("click", sendMessage);
+});
+
+
+
+
+
+
+
+
+document.getElementById("send").onclick=sendMessage;
 
 
 
 function sendMessage(){
 
 
-let text = messageInput.value.trim();
+let text=message.value.trim();
 
 
-if(text==="") return;
+if(!text)return;
 
 
-
-socket.emit("chat message", {
+socket.emit(
+"chat message",
+{
 
 nick:nickname,
+
 text:text
 
-});
+}
+
+);
 
 
-messageInput.value="";
+message.value="";
 
 
 }
@@ -75,44 +170,92 @@ messageInput.value="";
 
 
 
-// Enter отправка
 
-messageInput.addEventListener("keydown",(e)=>{
-
-
-if(e.key==="Enter"){
-sendMessage();
-}
-
-
-});
-
-
-
-
-
-// получение сообщений
-
-socket.on("chat message",(data)=>{
+socket.on(
+"chat message",
+(data)=>{
 
 
 let div=document.createElement("div");
 
 
-div.className="message";
+div.innerHTML=
 
-
-div.innerHTML =
 "<b>"+data.nick+
 ":</b> "+
 data.text;
 
 
+messages.appendChild(div);
+
+
+});
+
+
+
+
+
+
+socket.on(
+"old messages",
+(list)=>{
+
+
+list.forEach(data=>{
+
+
+let div=document.createElement("div");
+
+
+div.innerHTML=
+
+"<b>"+data.nick+
+":</b> "+
+data.text;
+
 
 messages.appendChild(div);
 
 
-messages.scrollTop=messages.scrollHeight;
+});
+
+
+});
+
+
+
+
+
+
+
+socket.on(
+"users online",
+(list)=>{
+
+
+users.innerHTML="";
+
+
+list.forEach(u=>{
+
+
+let div=document.createElement("div");
+
+
+div.innerHTML=
+
+`
+<img width="35" src="${u.avatar}">
+${u.nick}
+`;
+
+
+
+users.appendChild(div);
+
+
+
+});
 
 
 });
