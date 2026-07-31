@@ -1,57 +1,134 @@
 const socket = io();
 
-
-let nickname="";
+let nickname = "";
 
 
 const login = document.getElementById("login");
 const chat = document.getElementById("chat");
 
-const joinBtn = document.getElementById("joinBtn");
-const sendBtn = document.getElementById("sendBtn");
-
-
-const nickInput = document.getElementById("nickname");
-
-const messageInput = document.getElementById("message");
 
 const messages = document.getElementById("messages");
 
 
 
-joinBtn.onclick = ()=>{
+// РЕГИСТРАЦИЯ
+
+async function register(){
 
 
-nickname = nickInput.value.trim();
+let loginName = document.getElementById("loginName").value;
+
+let password = document.getElementById("loginPass").value;
 
 
-if(nickname===""){
 
-nickname="Anonymous";
+let response = await fetch("/register",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+login:loginName,
+
+password:password
+
+})
+
+
+});
+
+
+
+let data = await response.json();
+
+
+alert(data.message || "Готово");
+
 
 }
 
+
+
+
+// ВХОД
+
+async function loginUser(){
+
+
+let loginName = document.getElementById("loginName").value;
+
+let password = document.getElementById("loginPass").value;
+
+
+
+let response = await fetch("/login",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+login:loginName,
+
+password:password
+
+})
+
+
+});
+
+
+
+let data = await response.json();
+
+
+
+if(data.success){
+
+
+nickname=data.login;
+
+
+document.getElementById("login").style.display="none";
+
+document.getElementById("chat").style.display="flex";
 
 
 socket.emit("join",nickname);
 
 
 
-login.style.display="none";
-
-chat.style.display="flex";
+}else{
 
 
-};
+alert(data.message);
+
+
+}
+
+
+}
 
 
 
 
+// ОТПРАВКА СООБЩЕНИЯ
 
 function sendMessage(){
 
 
-let text = messageInput.value.trim();
+let input=document.getElementById("message");
+
+
+let text=input.value.trim();
+
 
 
 if(text==="") return;
@@ -60,28 +137,27 @@ if(text==="") return;
 
 socket.emit("chat message",{
 
-
 nick:nickname,
 
 text:text
-
 
 });
 
 
 
-messageInput.value="";
+input.value="";
 
 
 }
 
 
 
-sendBtn.onclick=sendMessage;
+
+document.getElementById("sendBtn").onclick=sendMessage;
 
 
 
-messageInput.addEventListener("keydown",(e)=>{
+document.getElementById("message").addEventListener("keydown",(e)=>{
 
 
 if(e.key==="Enter"){
@@ -97,6 +173,7 @@ sendMessage();
 
 
 
+
 socket.on("chat message",(data)=>{
 
 
@@ -106,22 +183,8 @@ let div=document.createElement("div");
 div.className="message";
 
 
-if(typeof data==="object"){
-
-
 div.innerHTML=
-"<b>"+data.nick+
-":</b> "+
-data.text;
-
-
-}else{
-
-
-div.textContent=data;
-
-
-}
+"<b>"+data.nick+"</b>: "+data.text;
 
 
 
