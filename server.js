@@ -11,15 +11,15 @@ io.on("connection", (socket)=>{
 
     console.log("Пользователь подключился");
 
-    socket.on("chat message", (msg)=>{
-        io.emit("chat message", msg);
+socket.on("chat message", (data)=>{
+    io.emit("chat message", data);
+});
     });
 
     socket.on("disconnect", ()=>{
         console.log("Пользователь вышел");
     });
 
-});
 
 
 const PORT = process.env.PORT || 3000;
