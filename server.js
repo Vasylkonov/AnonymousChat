@@ -12,15 +12,15 @@ app.use(express.static("public"));
 
 
 
-const messagesFile="messages.json";
-const usersFile="users.json";
+const USERS = "users.json";
+const MESSAGES = "messages.json";
 
 
-let messages=[];
-let accounts=[];
 
+let users = [];
+let messages = [];
 
-let online={};
+let online = {};
 
 
 
@@ -28,41 +28,50 @@ let online={};
 
 function load(file){
 
+
 try{
 
+
 if(!fs.existsSync(file)){
+
 fs.writeFileSync(file,"[]");
+
 }
 
 
-let data=fs.readFileSync(file,"utf8");
+let data =
+fs.readFileSync(file,"utf8");
 
 
-if(!data.trim()){
-return [];
-}
+return data ? JSON.parse(data) : [];
 
-
-return JSON.parse(data);
 
 
 }catch(e){
 
+
+console.log("Ошибка загрузки");
+
 return [];
 
 }
 
+
 }
+
+
 
 
 
 
 function save(file,data){
 
+
 fs.writeFileSync(
 file,
 JSON.stringify(data,null,2)
 );
+
 
 }
 
@@ -70,9 +79,30 @@ JSON.stringify(data,null,2)
 
 
 
-messages=load(messagesFile);
 
-accounts=load(usersFile);
+
+users = load(USERS);
+
+messages = load(MESSAGES);
+
+
+
+
+
+
+
+
+
+function onlineList(){
+
+
+return Object.values(online);
+
+
+}
+
+
+
 
 
 
@@ -87,47 +117,89 @@ console.log("Пользователь подключился");
 
 
 
+socket.emit(
+"old messages",
+messages
+);
 
 
-// регистрация
+
+
+
+
+
+
+
+// ======================
+// РЕГИСТРАЦИЯ
+// ======================
 
 
 socket.on("register",(data)=>{
 
 
-let check=accounts.find(
+let exists =
+users.find(
 u=>u.login===data.login
 );
 
 
 
-if(check){
+if(exists){
+
 
 socket.emit(
 "register error",
-"Такой логин уже существует"
+"Логин занят"
 );
 
 
 return;
 
+
 }
 
 
 
-accounts.push({
+
+
+let user={
+
+
+id:Date.now(),
+
 
 login:data.login,
 
-password:data.password
 
-});
+password:data.password,
+
+
+avatar:
+data.avatar ||
+"https://api.dicebear.com/7.x/bottts/svg?seed="+data.login,
+
+
+created:
+new Date().toLocaleDateString(),
+
+
+status:"Offline"
+
+
+};
+
+
+
+
+
+users.push(user);
 
 
 
 save(
-usersFile,
-accounts
+USERS,
+users
 );
 
 
@@ -147,13 +219,21 @@ socket.emit(
 
 
 
-// вход
+
+
+
+
+// ======================
+// ВХОД
+// ======================
 
 
 socket.on("login",(data)=>{
 
 
-let user=accounts.find(
+
+let user =
+users.find(
 u=>
 u.login===data.login &&
 u.password===data.password
@@ -172,42 +252,60 @@ socket.emit(
 
 return;
 
+
 }
 
 
 
-online[socket.id]={
 
 
-nick:user.login,
+user.status="Online";
 
 
-avatar:
-"https://api.dicebear.com/7.x/bottts/svg?seed="+user.login
+
+online[socket.id]=user;
 
 
-};
+
+save(
+USERS,
+users
+);
+
 
 
 
 
 socket.emit(
 "login success",
-user.login
+user
 );
 
 
-
-socket.emit(
-"old messages",
-messages
-);
 
 
 
 io.emit(
 "users online",
-Object.values(online)
+onlineList()
+);
+
+
+
+
+
+io.emit(
+"chat message",
+{
+
+nick:"SERVER",
+
+text:user.login+" вошёл в чат",
+
+time:""
+
+}
+
 );
 
 
@@ -223,24 +321,44 @@ Object.values(online)
 
 
 
-// сообщения
+
+// ======================
+// СООБЩЕНИЯ
+// ======================
 
 
-socket.on("chat message",(data)=>{
+socket.on(
+"chat message",
+(data)=>{
 
 
-messages.push(data);
+if(!data.text)return;
 
 
-if(messages.length>100){
+
+messages.push({
+
+nick:data.nick,
+
+text:data.text,
+
+time:new Date().toLocaleTimeString()
+
+
+});
+
+
+
+if(messages.length>200){
 
 messages.shift();
 
 }
 
 
+
 save(
-messagesFile,
+MESSAGES,
 messages
 );
 
@@ -248,8 +366,9 @@ messages
 
 io.emit(
 "chat message",
-data
+messages[messages.length-1]
 );
+
 
 
 });
@@ -261,31 +380,86 @@ data
 
 
 
-// выход
 
 
-socket.on("disconnect",()=>{
 
 
-delete online[socket.id];
+// ======================
+// ИЗМЕНЕНИЕ ПРОФИЛЯ
+// ======================
+
+
+socket.on(
+"update profile",
+(data)=>{
+
+
+let user =
+online[socket.id];
+
+
+
+if(!user)return;
+
+
+
+
+
+if(data.login){
+
+user.login=data.login;
+
+}
+
+
+
+if(data.avatar){
+
+user.avatar=data.avatar;
+
+}
+
+
+
+
+let index =
+users.findIndex(
+u=>u.id===user.id
+);
+
+
+
+if(index!==-1){
+
+users[index]=user;
+
+}
+
+
+
+save(
+USERS,
+users
+);
+
+
+
+
+
+socket.emit(
+"profile updated",
+user
+);
 
 
 
 io.emit(
 "users online",
-Object.values(online)
+onlineList()
 );
 
 
 
-console.log("Пользователь вышел");
-
-
-});
-
-
-
-
 });
 
 
@@ -295,15 +469,288 @@ console.log("Пользователь вышел");
 
 
 
-const PORT=process.env.PORT || 3000;
 
 
-server.listen(PORT,()=>{
+
+
+// ======================
+// СМЕНА ПАРОЛЯ
+// ======================
+
+
+socket.on(
+"change password",
+(pass)=>{
+
+
+let user =
+online[socket.id];
+
+
+
+if(!user)return;
+
+
+
+user.password=pass;
+
+
+
+save(
+USERS,
+users
+);
+
+
+
+socket.emit(
+"password changed"
+);
+
+
+
+});
+
+
+
+
+
+
+
+
+
+
+
+
+// ======================
+// ВЫХОД
+// ======================
+
+
+socket.on(
+"logout",
+()=>{
+
+
+let user =
+online[socket.id];
+
+
+if(user){
+
+
+user.status="Offline";
+
+
+delete online[socket.id];
+
+
+save(
+USERS,
+users
+);
+
+
+
+io.emit(
+"users online",
+onlineList()
+);
+
+
+
+}
+
+
+
+});
+
+
+
+
+
+
+
+
+
+
+
+// отключение
+// ==========================
+// ОБНОВЛЕНИЕ ПРОФИЛЯ
+// ==========================
+
+socket.on("update profile",(data)=>{
+
+
+let oldLogin = users[socket.id];
+
+
+
+if(!oldLogin){
+    return;
+}
+
+
+
+// новый ник
+
+if(data.login && data.login.trim() !== ""){
+
+    users[socket.id] = data.login.trim();
+
+}
+
+
+
+// новый аватар
+
+if(data.avatar && data.avatar.trim() !== ""){
+
+    avatars[socket.id] = data.avatar.trim();
+
+}
+
+
+
+
+let user = {
+
+    login: users[socket.id],
+
+    avatar: avatars[socket.id],
+
+    created: new Date().toLocaleDateString()
+
+};
+
+
+
+
+// отправляем обновлённый профиль
+
+socket.emit(
+"profile updated",
+user
+);
+
+
+
+
+// обновляем онлайн список
+
+io.emit(
+"users online",
+getUsers()
+);
+
+
+
+
+// сообщение в чат
+
+io.emit(
+"chat message",
+{
+
+nick:"SERVER",
+
+text:
+oldLogin+" изменил профиль"
+
+}
+
+);
+
+
+
+});
+
+socket.on(
+"disconnect",
+()=>{
+
+
+let user =
+online[socket.id];
+
+
+
+if(user){
+
+
+user.status="Offline";
+
+
+delete online[socket.id];
+
+
+save(
+USERS,
+users
+);
+
+
+
+io.emit(
+"users online",
+onlineList()
+);
+
+
+
+io.emit(
+"chat message",
+{
+
+nick:"SERVER",
+
+text:user.login+" вышел",
+
+time:""
+
+}
+
+);
+
+
+
+}
+
 
 
 console.log(
-"Сервер запущен: "+PORT
+"Пользователь отключился"
 );
 
+
+
+});
+
+
+
+});
+
+
+
+
+
+
+
+
+
+const PORT =
+process.env.PORT || 3000;
+
+
+
+server.listen(
+PORT,
+()=>{
+
+console.log(
+"Сервер запущен:",
+PORT
+);
 
 });
