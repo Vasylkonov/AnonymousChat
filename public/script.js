@@ -1,4 +1,99 @@
 const socket = io();
+const loginBtn=document.getElementById("loginBtn");
+
+const registerBtn=document.getElementById("registerBtn");
+
+
+let nickname="";
+
+
+
+registerBtn.onclick=function(){
+
+
+let login=document.getElementById("loginName").value;
+
+let password=document.getElementById("loginPass").value;
+
+
+
+socket.emit("register",{
+
+login:login,
+
+password:password
+
+});
+
+
+};
+
+
+
+
+
+loginBtn.onclick=function(){
+
+
+let login=document.getElementById("loginName").value;
+
+let password=document.getElementById("loginPass").value;
+
+
+
+socket.emit("login",{
+
+login:login,
+
+password:password
+
+});
+
+
+};
+
+
+
+
+
+socket.on("registerSuccess",(msg)=>{
+
+alert(msg);
+
+});
+
+
+
+socket.on("registerError",(msg)=>{
+
+alert(msg);
+
+});
+
+
+
+socket.on("loginSuccess",(name)=>{
+
+
+nickname=name;
+
+
+document.getElementById("login").style.display="none";
+
+
+document.getElementById("chat").style.display="block";
+
+
+});
+
+
+
+socket.on("loginError",(msg)=>{
+
+alert(msg);
+
+});
+
 
 
 let nickname = "Anonymous";
