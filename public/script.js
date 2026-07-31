@@ -1,41 +1,72 @@
 const socket = io();
 
 
-
-let nickname="";
-
-
-
-const auth=document.getElementById("auth");
-const chat=document.getElementById("chat");
-
-
-const loginInput=document.getElementById("login");
-const passwordInput=document.getElementById("password");
-
-
-const info=document.getElementById("info");
-
-
-const messages=document.getElementById("messages");
-
-const users=document.getElementById("users");
-
-
-const message=document.getElementById("message");
+let currentUser = null;
 
 
 
+// элементы
+
+const auth = document.getElementById("auth");
+const chat = document.getElementById("chat");
 
 
-document.getElementById("registerBtn").onclick=function(){
+const loginInput = document.getElementById("login");
+const passwordInput = document.getElementById("password");
+const avatarInput = document.getElementById("avatar");
+
+
+const info = document.getElementById("info");
+
+
+const messagesBox = document.getElementById("messages");
+const usersBox = document.getElementById("users");
+
+
+const messageInput = document.getElementById("message");
+
+
+
+const myAvatar = document.getElementById("myAvatar");
+const myName = document.getElementById("myName");
+const myDate = document.getElementById("myDate");
+
+
+
+const settings = document.getElementById("settings");
+
+
+
+console.log("script.js загружен");
+
+
+
+
+
+
+// =====================
+// РЕГИСТРАЦИЯ
+// =====================
+
+
+const registerBtn =
+document.getElementById("registerBtn");
+
+
+if(registerBtn){
+
+registerBtn.onclick = ()=>{
 
 
 socket.emit("register",{
 
-login:loginInput.value,
 
-password:passwordInput.value
+login:loginInput.value.trim(),
+
+password:passwordInput.value,
+
+avatar:avatarInput.value.trim()
+
 
 });
 
@@ -43,23 +74,8 @@ password:passwordInput.value
 };
 
 
+}
 
-
-
-
-document.getElementById("loginBtn").onclick=function(){
-
-
-socket.emit("login",{
-
-login:loginInput.value,
-
-password:passwordInput.value
-
-});
-
-
-};
 
 
 
@@ -76,7 +92,6 @@ info.innerHTML="✅ Регистрация успешна";
 
 
 
-
 socket.on("register error",(text)=>{
 
 
@@ -90,19 +105,69 @@ info.innerHTML="❌ "+text;
 
 
 
-socket.on("login success",(name)=>{
 
 
-nickname=name;
+
+// =====================
+// ВХОД
+// =====================
+
+
+
+const loginBtn =
+document.getElementById("loginBtn");
+
+
+
+if(loginBtn){
+
+
+loginBtn.onclick=()=>{
+
+
+socket.emit("login",{
+
+
+login:loginInput.value.trim(),
+
+password:passwordInput.value
+
+
+});
+
+
+};
+
+
+}
+
+
+
+
+
+
+
+
+socket.on("login success",(user)=>{
+
+
+currentUser=user;
+
 
 
 auth.style.display="none";
 
 
-chat.style.display="block";
+chat.style.display="flex";
+
+
+
+showProfile();
+
 
 
 });
+
 
 
 
@@ -124,30 +189,301 @@ info.innerHTML="❌ "+text;
 
 
 
-document.getElementById("sendBtn").onclick=function(){
+
+// =====================
+// ПРОФИЛЬ
+// =====================
 
 
-let text=message.value.trim();
+function showProfile(){
+
+
+if(!currentUser)return;
+
+
+
+myAvatar.src=currentUser.avatar;
+
+
+myName.innerHTML=currentUser.login;
+
+
+myDate.innerHTML=
+"📅 "+currentUser.created;
+
+
+
+}
+
+
+
+
+
+
+
+
+
+// кнопка профиль
+
+
+const editBtn =
+document.getElementById("editBtn");
+
+
+
+if(editBtn){
+
+
+editBtn.onclick=()=>{
+
+
+console.log("Профиль открыт");
+
+
+settings.style.display="block";
+
+
+
+document.getElementById("newLogin").value =
+currentUser.login;
+
+
+
+document.getElementById("newAvatar").value =
+currentUser.avatar;
+
+
+
+};
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+// закрыть профиль
+
+
+const closeSettings =
+document.getElementById("closeSettings");
+
+
+
+if(closeSettings){
+
+
+closeSettings.onclick=()=>{
+
+
+settings.style.display="none";
+
+
+};
+
+
+}
+
+
+
+
+
+
+
+
+
+
+// сохранить профиль
+
+
+const saveProfile =
+document.getElementById("saveProfile");
+
+
+
+if(saveProfile){
+
+
+saveProfile.onclick=()=>{
+
+
+socket.emit(
+"update profile",
+{
+
+
+login:
+document.getElementById("newLogin").value,
+
+
+avatar:
+document.getElementById("newAvatar").value
+
+
+});
+
+
+};
+
+
+}
+
+
+
+
+
+
+
+socket.on("profile updated",(user)=>{
+
+
+currentUser=user;
+
+
+showProfile();
+
+
+settings.style.display="none";
+
+
+});
+
+
+
+
+
+
+
+
+
+// =====================
+// СООБЩЕНИЯ
+// =====================
+
+
+const sendBtn =
+document.getElementById("sendBtn");
+
+
+
+if(sendBtn){
+
+
+sendBtn.onclick=sendMessage;
+
+
+}
+
+
+
+
+
+function sendMessage(){
+
+
+let text =
+messageInput.value.trim();
+
 
 
 if(!text)return;
 
 
 
-socket.emit("chat message",{
+socket.emit(
+"chat message",
+{
 
-nick:nickname,
+
+nick:currentUser.login,
 
 text:text
+
+
+}
+);
+
+
+
+messageInput.value="";
+
+
+}
+
+
+
+
+
+
+
+
+messageInput.addEventListener(
+"keydown",
+(e)=>{
+
+
+if(e.key==="Enter"){
+
+
+sendMessage();
+
+
+}
+
 
 });
 
 
 
-message.value="";
 
 
-};
+
+
+
+
+function addMessage(data){
+
+
+
+let div=document.createElement("div");
+
+
+div.className="message";
+
+
+
+div.innerHTML=`
+
+<b>${data.nick}</b>: 
+${data.text}
+
+<br>
+
+<small>
+${data.time || ""}
+</small>
+
+`;
+
+
+
+messagesBox.appendChild(div);
+
+
+
+messagesBox.scrollTop =
+messagesBox.scrollHeight;
+
+
+
+}
 
 
 
@@ -159,16 +495,7 @@ message.value="";
 socket.on("chat message",(data)=>{
 
 
-let div=document.createElement("div");
-
-
-div.innerHTML=
-"<b>"+data.nick+
-":</b> "+
-data.text;
-
-
-messages.appendChild(div);
+addMessage(data);
 
 
 });
@@ -182,22 +509,12 @@ messages.appendChild(div);
 socket.on("old messages",(list)=>{
 
 
-list.forEach(data=>{
+messagesBox.innerHTML="";
 
 
-let div=document.createElement("div");
-
-
-div.innerHTML=
-"<b>"+data.nick+
-":</b> "+
-data.text;
-
-
-messages.appendChild(div);
-
-
-});
+list.forEach(
+m=>addMessage(m)
+);
 
 
 });
@@ -206,24 +523,41 @@ messages.appendChild(div);
 
 
 
+
+
+
+
+// =====================
+// ОНЛАЙН
+// =====================
 
 
 socket.on("users online",(list)=>{
 
 
-users.innerHTML="🟢 Онлайн:<br>";
+if(!usersBox)return;
+
+
+
+usersBox.innerHTML=
+"<h3>🟢 Онлайн</h3>";
 
 
 
 list.forEach(user=>{
 
 
-users.innerHTML+=
-`
-<img width="35" src="${user.avatar}">
-${user.nick}<br>
-`;
+usersBox.innerHTML += `
 
+<div class="user">
+
+<img src="${user.avatar}">
+
+<span>${user.login}</span>
+
+</div>
+
+`;
 
 
 });
