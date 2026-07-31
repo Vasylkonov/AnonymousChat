@@ -18,7 +18,6 @@ let avatars = {};
 const file = "messages.json";
 
 
-// загрузка сообщений
 
 function loadMessages(){
 
@@ -28,21 +27,18 @@ function loadMessages(){
             fs.writeFileSync(file,"[]");
         }
 
-
         let data = fs.readFileSync(file,"utf8");
-
 
         if(!data.trim()){
             return [];
         }
-
 
         return JSON.parse(data);
 
 
     }catch(e){
 
-        console.log("Ошибка загрузки сообщений");
+        console.log("Ошибка файла сообщений");
         return [];
 
     }
@@ -56,8 +52,6 @@ let messages = loadMessages();
 
 
 
-
-// сохранение
 
 function saveMessages(){
 
@@ -74,29 +68,34 @@ function saveMessages(){
 
 function getUsers(){
 
-let list=[];
+    let list=[];
 
 
-for(let id in users){
+    for(let id in users){
 
-list.push({
+        list.push({
 
-nick:users[id],
+            nick: users[id],
+            avatar: avatars[id]
 
-avatar:avatars[id]
+        });
 
-});
-
-
-}
+    }
 
 
-return list;
+    return list;
 
 }
+
+
+
+
+
+io.on("connection",(socket)=>{
 
 
 console.log("Пользователь подключился");
+
 
 
 // отправляем историю
@@ -110,29 +109,36 @@ messages
 
 
 
-// вход
+// вход пользователя
 
 socket.on("join",(nickname)=>{
 
 
 if(!nickname || nickname.trim()==""){
-    nickname="Anonymous";
+
+nickname="Anonymous";
+
 }
+
 
 
 users[socket.id]=nickname;
 
 
-// создаём аватар
 
 avatars[socket.id] =
-"https://api.dicebear.com/7.x/bottts/svg?seed=" + nickname;
+"https://api.dicebear.com/7.x/bottts/svg?seed="+nickname;
 
 
 
-// отправляем список игроков
 
-io.emit("users online", getUsers());
+
+io.emit(
+"users online",
+getUsers()
+);
+
+
 
 
 
@@ -145,7 +151,9 @@ text:nickname+" вошёл в чат"
 });
 
 
+
 });
+
 
 
 
@@ -192,16 +200,26 @@ data
 
 
 
-delete avatars[socket.id];
+// выход
+
+socket.on("disconnect",()=>{
 
 
-io.emit("users online", getUsers());
+let name = users[socket.id];
 
-
-let name=users[socket.id];
 
 
 delete users[socket.id];
+
+delete avatars[socket.id];
+
+
+
+io.emit(
+"users online",
+getUsers()
+);
+
 
 
 
@@ -224,9 +242,11 @@ text:name+" вышел из чата"
 console.log("Пользователь отключился");
 
 
+});
 
 
 
+});
 
 
 
