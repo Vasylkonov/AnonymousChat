@@ -1,170 +1,125 @@
 const socket = io();
 
-let nickname = "";
+
+let nickname = "Anonymous";
 
 
 const login = document.getElementById("login");
 const chat = document.getElementById("chat");
 
+const joinBtn = document.getElementById("joinBtn");
+const sendBtn = document.getElementById("sendBtn");
+
+
+const nicknameInput = document.getElementById("nickname");
+const messageInput = document.getElementById("message");
 
 const messages = document.getElementById("messages");
 
 
 
-// РЕГИСТРАЦИЯ
+// вход в чат
 
-async function register(){
+joinBtn.addEventListener("click", function(){
 
-
-let loginName = document.getElementById("loginName").value;
-
-let password = document.getElementById("loginPass").value;
+    nickname = nicknameInput.value.trim();
 
 
+    if(nickname === ""){
+        nickname = "Anonymous";
+    }
 
-let response = await fetch("/register",{
 
-method:"POST",
+    socket.emit("join", nickname);
 
-headers:{
-"Content-Type":"application/json"
-},
 
-body:JSON.stringify({
-
-login:loginName,
-
-password:password
-
-})
+    login.style.display = "none";
+    chat.style.display = "block";
 
 
 });
 
 
 
-let data = await response.json();
 
-
-alert(data.message || "Готово");
-
-
-}
-
-
-
-
-// ВХОД
-
-async function loginUser(){
-
-
-let loginName = document.getElementById("loginName").value;
-
-let password = document.getElementById("loginPass").value;
-
-
-
-let response = await fetch("/login",{
-
-method:"POST",
-
-headers:{
-"Content-Type":"application/json"
-},
-
-body:JSON.stringify({
-
-login:loginName,
-
-password:password
-
-})
-
-
-});
-
-
-
-let data = await response.json();
-
-
-
-if(data.success){
-
-
-nickname=data.login;
-
-
-document.getElementById("login").style.display="none";
-
-document.getElementById("chat").style.display="flex";
-
-
-socket.emit("join",nickname);
-
-
-
-}else{
-
-
-alert(data.message);
-
-
-}
-
-
-}
-
-
-
-
-// ОТПРАВКА СООБЩЕНИЯ
+// отправка сообщения
 
 function sendMessage(){
 
 
-let input=document.getElementById("message");
+    let text = messageInput.value.trim();
 
 
-let text=input.value.trim();
+    if(text === ""){
+        return;
+    }
 
 
+    socket.emit("chat message", {
 
-if(text==="") return;
+        nick:nickname,
 
+        text:text
 
-
-socket.emit("chat message",{
-
-nick:nickname,
-
-text:text
-
-});
+    });
 
 
-
-input.value="";
+    messageInput.value="";
 
 
 }
 
 
 
-
-document.getElementById("sendBtn").onclick=sendMessage;
-
+sendBtn.addEventListener("click", sendMessage);
 
 
-document.getElementById("message").addEventListener("keydown",(e)=>{
+
+messageInput.addEventListener("keydown",function(e){
+
+    if(e.key==="Enter"){
+
+        sendMessage();
+
+    }
+
+});
 
 
-if(e.key==="Enter"){
 
-sendMessage();
 
-}
+// получение сообщений
+
+
+socket.on("chat message", function(data){
+
+
+    let div=document.createElement("div");
+
+
+    div.className="message";
+
+
+    if(typeof data === "object"){
+
+
+        div.innerHTML =
+        "<b>"+data.nick+"</b>: "+data.text;
+
+
+    }else{
+
+
+        div.textContent=data;
+
+
+    }
+
+
+    messages.appendChild(div);
+
+
+    messages.scrollTop = messages.scrollHeight;
 
 
 });
@@ -172,26 +127,29 @@ sendMessage();
 
 
 
+// старые сообщения
 
 
-socket.on("chat message",(data)=>{
+socket.on("old messages", function(list){
 
 
-let div=document.createElement("div");
+    list.forEach(function(data){
 
 
-div.className="message";
+        let div=document.createElement("div");
 
 
-div.innerHTML=
-"<b>"+data.nick+"</b>: "+data.text;
+        div.className="message";
 
 
+        div.innerHTML =
+        "<b>"+data.nick+"</b>: "+data.text;
 
-messages.appendChild(div);
+
+        messages.appendChild(div);
 
 
-messages.scrollTop=messages.scrollHeight;
+    });
 
 
 });
