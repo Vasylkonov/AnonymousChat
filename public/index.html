@@ -24,7 +24,10 @@
 
 
 
-<!-- ВХОД -->
+<!-- ================= -->
+<!-- АВТОРИЗАЦИЯ -->
+<!-- ================= -->
+
 
 <div id="auth" class="card">
 
@@ -32,7 +35,10 @@
 <h1>💬 Anonymous Chat</h1>
 
 
-<input id="login" placeholder="Логин">
+<input 
+id="login"
+placeholder="Логин"
+>
 
 
 <input 
@@ -49,11 +55,8 @@ placeholder="Ссылка на аватар"
 
 
 
-<div>
-
-
 <button id="registerBtn">
-Регистрация
+Создать аккаунт
 </button>
 
 
@@ -62,13 +65,10 @@ placeholder="Ссылка на аватар"
 </button>
 
 
-</div>
-
 
 <p id="info"></p>
 
 
-
 </div>
 
 
@@ -77,26 +77,31 @@ placeholder="Ссылка на аватар"
 
 
 
+
+
+<!-- ================= -->
 <!-- ЧАТ -->
+<!-- ================= -->
+
 
 <div id="chat" style="display:none;">
 
 
 
+<header class="top">
 
 
-<div class="top">
+<div class="profile-mini">
 
 
-<div id="profile">
-
-
-<img id="myAvatar">
+<img id="myAvatar"
+src="">
 
 
 <div>
 
 <h3 id="myName">
+User
 </h3>
 
 
@@ -111,14 +116,13 @@ placeholder="Ссылка на аватар"
 
 
 
-
 <button id="editBtn">
-⚙️ Профиль
+👤 Профиль
 </button>
 
 
 
-</div>
+</header>
 
 
 
@@ -127,24 +131,27 @@ placeholder="Ссылка на аватар"
 
 
 
-
-<div class="main">
-
+<div class="content">
 
 
 
-
-<div id="users">
-
-
-</div>
+<aside id="users">
 
 
+<h3>
+🟢 Онлайн
+</h3>
+
+
+</aside>
 
 
 
 
-<div class="chatBox">
+
+
+<section class="chat-area">
+
 
 
 <div id="messages">
@@ -153,14 +160,16 @@ placeholder="Ссылка на аватар"
 
 
 
+
+
+
 <div class="send">
 
 
 <input 
 id="message"
-placeholder="Написать сообщение..."
+placeholder="Сообщение..."
 >
-
 
 
 <button id="sendBtn">
@@ -172,6 +181,11 @@ placeholder="Написать сообщение..."
 
 
 
+</section>
+
+
+
+
 </div>
 
 
@@ -189,45 +203,122 @@ placeholder="Написать сообщение..."
 
 
 
-<!-- НАСТРОЙКИ -->
+<!-- ================= -->
+<!-- ПРОФИЛЬ -->
+<!-- ================= -->
 
 
-<div id="settings" style="display:none;" class="card">
-
-
-<h2>
-Настройки профиля
-</h2>
+<div id="settings" 
+style="display:none;"
+class="profile-window">
 
 
 
-<input id="newLogin" placeholder="Новый ник">
+<div class="profile-card">
 
-
-<input id="newAvatar" placeholder="Новый аватар">
-
-
-<button id="saveProfile">
-Сохранить
-</button>
 
 
 <button id="closeSettings">
-Закрыть
+❌
 </button>
 
 
 
+
+<img 
+id="profileAvatar"
+class="big-avatar"
+>
+
+
+
+
+
+<h2 id="profileName">
+</h2>
+
+
+<p id="profileDate">
+</p>
+
+
+
+
+
+<hr>
+
+
+
+
+<input
+id="newLogin"
+placeholder="Новый ник"
+>
+
+
+
+
+<input
+id="newAvatar"
+placeholder="Новый аватар"
+>
+
+
+
+
+
+<button id="saveProfile">
+💾 Сохранить профиль
+</button>
+
+
+
+
+
+
+
+
+<hr>
+
+
+
+
+<input
+id="newPassword"
+type="password"
+placeholder="Новый пароль"
+>
+
+
+
+
+<button id="changePassword">
+🔒 Сменить пароль
+</button>
+
+
+
+
+
+
+<button id="logout">
+🚪 Выйти
+</button>
+
+
+
+
+
+</div>
+
+
+
 </div>
 
 
 
 
 
-
-
-
-</div>
 
 
 
