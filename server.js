@@ -7,15 +7,15 @@ const io = require("socket.io")(server);
 
 app.use(express.static("public"));
 
-io.on("connection", (socket) => {
+io.on("connection", (socket)=>{
 
     console.log("Пользователь подключился");
 
-    socket.on("chat message", (msg) => {
+    socket.on("chat message", (msg)=>{
         io.emit("chat message", msg);
     });
 
-    socket.on("disconnect", () => {
+    socket.on("disconnect", ()=>{
         console.log("Пользователь вышел");
     });
 
@@ -24,6 +24,6 @@ io.on("connection", (socket) => {
 
 const PORT = process.env.PORT || 3000;
 
-server.listen(PORT, "0.0.0.0", () => {
+server.listen(PORT, ()=>{
     console.log("Сервер запущен на порту " + PORT);
 });
