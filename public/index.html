@@ -1,11 +1,13 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 
 <head>
 
 <meta charset="UTF-8">
 
 <title>Anonymous Chat</title>
+
+<script src="/socket.io/socket.io.js"></script>
 
 <link rel="stylesheet" href="style.css">
 
@@ -15,15 +17,21 @@
 <body>
 
 
+<div class="container">
+
+
 <div id="login">
 
 <h1>Anonymous Chat</h1>
 
 
-<input id="nickname" placeholder="Введите ник">
+<input 
+id="nickname"
+placeholder="Введите ник"
+>
 
 
-<button onclick="joinChat()">
+<button id="joinBtn">
 Войти в чат
 </button>
 
@@ -32,22 +40,27 @@
 
 
 
-<div id="chat" style="display:none">
+
+<div id="chat" style="display:none;">
 
 
-<h2>
-Anonymous Chat
-</h2>
+<h1>💬 Чат</h1>
 
 
 <div id="messages"></div>
 
 
 
-<input id="message" placeholder="Сообщение">
+<div class="send">
 
 
-<button onclick="sendMessage()">
+<input 
+id="message"
+placeholder="Сообщение"
+>
+
+
+<button id="sendBtn">
 Отправить
 </button>
 
@@ -55,103 +68,15 @@ Anonymous Chat
 </div>
 
 
+</div>
 
-<script src="/socket.io/socket.io.js"></script>
 
 
-<script>
+</div>
 
 
-const socket = io();
 
-
-let nickname="";
-
-
-
-function joinChat(){
-
-
-nickname=document.getElementById("nickname").value;
-
-
-if(nickname.trim()==""){
-
-nickname="Anonymous";
-
-}
-
-
-
-socket.emit("join",nickname);
-
-
-
-document.getElementById("login").style.display="none";
-
-
-document.getElementById("chat").style.display="block";
-
-
-
-}
-
-
-
-socket.on("old messages",(msgs)=>{
-
-
-msgs.forEach(addMessage);
-
-
-});
-
-
-
-
-socket.on("chat message",(msg)=>{
-
-
-addMessage(msg);
-
-
-});
-
-
-
-
-function addMessage(msg){
-
-    let div = document.createElement("div");
-
-    if(typeof msg === "string"){
-
-        div.innerHTML = msg;
-
-    } else {
-
-        div.innerHTML =
-        "<b>" + msg.nick + "</b>: " + msg.text;
-
-    }
-
-
-    document.getElementById("messages")
-    .appendChild(div);
-
-
-    let box = document.getElementById("messages");
-
-    box.scrollTop = box.scrollHeight;
-
-}
-
-
-
-
-
-
-</script>
+<script src="script.js"></script>
 
 
 </body>
