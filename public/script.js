@@ -1,4 +1,4 @@
-const socket=io();
+const socket = io();
 
 
 
@@ -7,17 +7,14 @@ let nickname="";
 
 
 const auth=document.getElementById("auth");
-
 const chat=document.getElementById("chat");
 
 
-const login=document.getElementById("login");
-
-const password=document.getElementById("password");
+const loginInput=document.getElementById("login");
+const passwordInput=document.getElementById("password");
 
 
 const info=document.getElementById("info");
-
 
 
 const messages=document.getElementById("messages");
@@ -31,20 +28,16 @@ const message=document.getElementById("message");
 
 
 
-document.getElementById("register").onclick=()=>{
+document.getElementById("registerBtn").onclick=function(){
 
 
-socket.emit(
-"register",
-{
+socket.emit("register",{
 
-login:login.value,
+login:loginInput.value,
 
-password:password.value
+password:passwordInput.value
 
-}
-
-);
+});
 
 
 };
@@ -54,45 +47,16 @@ password:password.value
 
 
 
-socket.on(
-"register success",
-()=>{
-
-info.innerHTML="Регистрация успешна";
-
-});
+document.getElementById("loginBtn").onclick=function(){
 
 
+socket.emit("login",{
 
-socket.on(
-"register error",
-(msg)=>{
+login:loginInput.value,
 
-info.innerHTML=msg;
+password:passwordInput.value
 
 });
-
-
-
-
-
-
-
-
-document.getElementById("enter").onclick=()=>{
-
-
-socket.emit(
-"login",
-{
-
-login:login.value,
-
-password:password.value
-
-}
-
-);
 
 
 };
@@ -102,15 +66,38 @@ password:password.value
 
 
 
-socket.on(
-"login success",
-(name)=>{
+socket.on("register success",()=>{
+
+
+info.innerHTML="✅ Регистрация успешна";
+
+
+});
+
+
+
+
+socket.on("register error",(text)=>{
+
+
+info.innerHTML="❌ "+text;
+
+
+});
+
+
+
+
+
+
+socket.on("login success",(name)=>{
 
 
 nickname=name;
 
 
 auth.style.display="none";
+
 
 chat.style.display="block";
 
@@ -120,11 +107,13 @@ chat.style.display="block";
 
 
 
-socket.on(
-"login error",
-(msg)=>{
 
-info.innerHTML=msg;
+
+socket.on("login error",(text)=>{
+
+
+info.innerHTML="❌ "+text;
+
 
 });
 
@@ -135,11 +124,7 @@ info.innerHTML=msg;
 
 
 
-document.getElementById("send").onclick=sendMessage;
-
-
-
-function sendMessage(){
+document.getElementById("sendBtn").onclick=function(){
 
 
 let text=message.value.trim();
@@ -148,39 +133,36 @@ let text=message.value.trim();
 if(!text)return;
 
 
-socket.emit(
-"chat message",
-{
+
+socket.emit("chat message",{
 
 nick:nickname,
 
 text:text
 
-}
+});
 
-);
 
 
 message.value="";
 
 
-}
+};
 
 
 
 
 
 
-socket.on(
-"chat message",
-(data)=>{
+
+
+socket.on("chat message",(data)=>{
 
 
 let div=document.createElement("div");
 
 
 div.innerHTML=
-
 "<b>"+data.nick+
 ":</b> "+
 data.text;
@@ -196,9 +178,8 @@ messages.appendChild(div);
 
 
 
-socket.on(
-"old messages",
-(list)=>{
+
+socket.on("old messages",(list)=>{
 
 
 list.forEach(data=>{
@@ -208,7 +189,6 @@ let div=document.createElement("div");
 
 
 div.innerHTML=
-
 "<b>"+data.nick+
 ":</b> "+
 data.text;
@@ -228,30 +208,21 @@ messages.appendChild(div);
 
 
 
-socket.on(
-"users online",
-(list)=>{
+socket.on("users online",(list)=>{
 
 
-users.innerHTML="";
+users.innerHTML="🟢 Онлайн:<br>";
 
 
-list.forEach(u=>{
+
+list.forEach(user=>{
 
 
-let div=document.createElement("div");
-
-
-div.innerHTML=
-
+users.innerHTML+=
 `
-<img width="35" src="${u.avatar}">
-${u.nick}
+<img width="35" src="${user.avatar}">
+${user.nick}<br>
 `;
-
-
-
-users.appendChild(div);
 
 
 
