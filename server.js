@@ -29,34 +29,40 @@ if(!fs.existsSync(messagesFile)){
 // загрузка сообщений
 function loadMessages(){
 
-    let data = fs.readFileSync(messagesFile);
+    try{
 
-    return JSON.parse(data);
-
-}
+        let data = fs.readFileSync(messagesFile, "utf8");
 
 
-// сохранение сообщений
-function saveMessage(message){
+        if(!data.trim()){
 
-    let messages = loadMessages();
+            return [];
 
-
-    messages.push(message);
+        }
 
 
-    // оставляем последние 100 сообщений
-    if(messages.length > 100){
-        messages.shift();
+        return JSON.parse(data);
+
+
+    }catch(error){
+
+
+        console.log("Ошибка чтения истории, создаём новую");
+
+
+        fs.writeFileSync(
+            messagesFile,
+            "[]"
+        );
+
+
+        return [];
+
     }
 
-
-    fs.writeFileSync(
-        messagesFile,
-        JSON.stringify(messages,null,2)
-    );
-
 }
+
+
 
 
 
