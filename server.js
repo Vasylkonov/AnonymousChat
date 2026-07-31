@@ -1,9 +1,11 @@
 const express = require("express");
 const app = express();
 
-const server = require("http").createServer(app);
+const http = require("http");
+const server = http.createServer(app);
 
-const io = require("socket.io")(server);
+const { Server } = require("socket.io");
+const io = new Server(server);
 
 app.use(express.static("public"));
 
@@ -11,40 +13,69 @@ app.use(express.static("public"));
 let users = {};
 
 
-io.on("connection", (socket)=>{
+// подключение пользователя
+io.on("connection", (socket) => {
 
     console.log("Пользователь подключился");
 
 
-    socket.on("join", (nickname)=>{
+    // вход в чат
+    socket.on("join", (userData)=>{
 
-        users[socket.id] = nickname || "Anonymous";
+        users[socket.id] = {
+            nick: userData.nick || "Anonymous",
+            avatar: userData.avatar || "👤"
+        };
 
 
+        // обновляем список пользователей
         io.emit("users", users);
 
 
+
+        // сообщение сервера
         io.emit("chat message", {
+
             nick:"SERVER",
-            text: users[socket.id] + " вошёл в чат"
+            avatar:"⚙️",
+            text: users[socket.id].nick + " вошёл в чат"
+
         });
 
-    });
-
-
-
-    socket.on("chat message", (data)=>{
-
-        io.emit("chat message", data);
 
     });
 
 
 
+    // сообщение
+    socket.on("chat message", (msg)=>{
+
+
+        let user = users[socket.id];
+
+
+        if(user){
+
+            io.emit("chat message", {
+
+                nick:user.nick,
+                avatar:user.avatar,
+                text:msg
+
+            });
+
+        }
+
+
+    });
+
+
+
+    // выход
     socket.on("disconnect", ()=>{
 
 
-        let name = users[socket.id];
+        let user = users[socket.id];
 
 
         delete users[socket.id];
@@ -53,19 +84,23 @@ io.on("connection", (socket)=>{
         io.emit("users", users);
 
 
-        if(name){
+
+        if(user){
 
             io.emit("chat message", {
 
                 nick:"SERVER",
-                text:name + " вышел из чата"
+                avatar:"⚙️",
+                text:user.nick + " вышел из чата"
 
             });
 
         }
 
 
-        console.log("Пользователь вышел");
+
+        console.log("Пользователь отключился");
+
 
     });
 
@@ -79,6 +114,8 @@ const PORT = process.env.PORT || 3000;
 
 server.listen(PORT, ()=>{
 
-    console.log("Сервер запущен на порту " + PORT);
+    console.log(
+        "Сервер запущен на порту " + PORT
+    );
 
 });
