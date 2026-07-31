@@ -13,6 +13,7 @@ app.use(express.static("public"));
 
 
 let users = {};
+let avatars = {};
 
 const file = "messages.json";
 
@@ -71,7 +72,28 @@ function saveMessages(){
 
 
 
-io.on("connection",(socket)=>{
+function getUsers(){
+
+let list=[];
+
+
+for(let id in users){
+
+list.push({
+
+nick:users[id],
+
+avatar:avatars[id]
+
+});
+
+
+}
+
+
+return list;
+
+}
 
 
 console.log("Пользователь подключился");
@@ -94,13 +116,23 @@ socket.on("join",(nickname)=>{
 
 
 if(!nickname || nickname.trim()==""){
-
-nickname="Anonymous";
-
+    nickname="Anonymous";
 }
 
 
 users[socket.id]=nickname;
+
+
+// создаём аватар
+
+avatars[socket.id] =
+"https://api.dicebear.com/7.x/bottts/svg?seed=" + nickname;
+
+
+
+// отправляем список игроков
+
+io.emit("users online", getUsers());
 
 
 
@@ -160,7 +192,10 @@ data
 
 
 
-socket.on("disconnect",()=>{
+delete avatars[socket.id];
+
+
+io.emit("users online", getUsers());
 
 
 let name=users[socket.id];
@@ -189,11 +224,9 @@ text:name+" вышел из чата"
 console.log("Пользователь отключился");
 
 
-});
 
 
 
-});
 
 
 
